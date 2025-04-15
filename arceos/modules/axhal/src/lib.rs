@@ -64,6 +64,7 @@ pub mod console {
 
     /// Write a slice of bytes to the console.
     pub fn write_bytes(bytes: &[u8]) {
+        // set color(blue)
         for c in b"\x1b[34m" {
             putchar(*c);
         }
@@ -72,6 +73,7 @@ pub mod console {
             putchar(*c);
         }
         
+        // reset color
         for c in b"\x1b[0m" {
             putchar(*c);
         }
