@@ -4,7 +4,6 @@ use alloc::vec;
 use alloc::vec::Vec;
 use alloc::string::{String, ToString};
 
-
 use arceos_api::arceos_random;
 
 //use crate::println;
