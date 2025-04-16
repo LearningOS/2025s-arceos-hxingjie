@@ -403,3 +403,7 @@ pub mod modules {
     #[cfg(feature = "multitask")]
     pub use axtask;
 }
+
+pub fn arceos_random() -> u128 {
+    axhal::misc::random()
+}
