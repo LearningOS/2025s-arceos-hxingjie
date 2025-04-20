@@ -67,6 +67,21 @@ impl DirNode {
         children.remove(name);
         Ok(())
     }
+
+    /// rename
+    pub fn rename_node(&self, old_name: &str, new_name: &str) -> VfsResult {
+        if ! self.exist(old_name) {
+            return Err(VfsError::NotFound); // old_name not in this dir
+        }
+
+        let mut tmp = self.children.write();
+        if let Some(value) = tmp.remove(old_name) {
+            tmp.insert(String::from(new_name), value);  // 插入新键
+            Ok(())
+        } else {
+            Err(VfsError::NotFound) // remove fail
+        }
+    }
 }
 
 impl VfsNodeOps for DirNode {
@@ -163,6 +178,21 @@ impl VfsNodeOps for DirNode {
         } else {
             self.remove_node(name)
         }
+    }
+
+    fn rename(&self, _src_path: &str, _dst_path: &str) -> VfsResult {
+        // Just rename, NOT move.
+        // So this must happen in the same directory.
+        let mut idx = 0;
+        for (i, c) in _dst_path.as_bytes().iter().enumerate().rev() {
+            if *c == b'/' {
+                idx = i+1;
+                break;
+            }
+        }
+        
+        log::warn!("arceos/axfs_ramfs/src/dir.rs: {} -> {}", &_src_path[1..], &_dst_path[idx..]); // &_src_path[1..]: "f1"
+        self.rename_node(&_src_path[1..], &_dst_path[idx..])
     }
 
     axfs_vfs::impl_vfs_dir_default! {}
