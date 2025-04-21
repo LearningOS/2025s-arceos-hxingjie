@@ -140,7 +140,42 @@ fn sys_mmap(
     fd: i32,
     _offset: isize,
 ) -> isize {
-    unimplemented!("no sys_mmap!");
+    //unimplemented!("no sys_mmap!");
+    
+    // va_range: VA:0x0..VA:0x4000000000
+    let vaddr = axhal::mem::VirtAddr::from(0x10000000usize);
+
+    let mut mmaping_prot: MappingFlags = MappingFlags::USER;
+    if prot & 0x1 != 0 {
+        mmaping_prot |= MappingFlags::READ;
+    }
+    if prot & 0x2 != 0 {
+        mmaping_prot |= MappingFlags::WRITE;
+    }
+    if prot & 0x4 != 0 {
+        mmaping_prot |= MappingFlags::EXECUTE;
+    }
+
+    use axhal::mem::{PAGE_SIZE_4K, phys_to_virt};
+    let mut buf = [0_u8; PAGE_SIZE_4K];
+    api::sys_read(fd, buf.as_mut_ptr() as *mut c_void, length);
+    //ax_println!("{:?}", core::str::from_utf8(&buf[..length]).unwrap());
+
+    current().task_ext().aspace.lock().map_alloc(vaddr, PAGE_SIZE_4K, mmaping_prot, true);
+    let (paddr, _, _) = current().task_ext().aspace.lock()
+        .page_table()
+        .query(vaddr)
+        .unwrap_or_else(|_| panic!("Mapping failed for segment"));
+
+    unsafe {
+        core::ptr::copy(
+            buf.as_ptr(),
+            phys_to_virt(paddr).as_mut_ptr(),
+            PAGE_SIZE_4K,
+        );
+    }
+
+    vaddr.as_usize() as isize
 }
 
 fn sys_openat(dfd: c_int, fname: *const c_char, flags: c_int, mode: api::ctypes::mode_t) -> isize {
