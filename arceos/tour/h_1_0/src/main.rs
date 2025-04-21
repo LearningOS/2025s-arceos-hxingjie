@@ -39,15 +39,15 @@ fn main() {
     if let Err(e) = load_vm_image("/sbin/skernel", &mut uspace) {
         panic!("Cannot load app! {:?}", e);
     }
-    
+
     // Setup context to prepare to enter guest mode.
     let mut ctx = VmCpuRegisters::default();
     prepare_guest_context(&mut ctx);
-    
+
     // Setup pagetable for 2nd address mapping.
     let ept_root = uspace.page_table_root();
     prepare_vm_pgtable(ept_root);
-    
+
     // Kick off vm and wait for it to exit.
     run_guest(&mut ctx);
 
