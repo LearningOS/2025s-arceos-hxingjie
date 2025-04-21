@@ -142,8 +142,10 @@ fn sys_mmap(
 ) -> isize {
     //unimplemented!("no sys_mmap!");
     
+    use axhal::mem::{VirtAddr, PAGE_SIZE_4K, phys_to_virt};
+
     // va_range: VA:0x0..VA:0x4000000000
-    let vaddr = axhal::mem::VirtAddr::from(0x10000000usize);
+    let vaddr = VirtAddr::from(0x10000000usize);
 
     let mut mmaping_prot: MappingFlags = MappingFlags::USER;
     if prot & 0x1 != 0 {
@@ -156,7 +158,7 @@ fn sys_mmap(
         mmaping_prot |= MappingFlags::EXECUTE;
     }
 
-    use axhal::mem::{PAGE_SIZE_4K, phys_to_virt};
+   
     let mut buf = [0_u8; PAGE_SIZE_4K];
     api::sys_read(fd, buf.as_mut_ptr() as *mut c_void, length);
     //ax_println!("{:?}", core::str::from_utf8(&buf[..length]).unwrap());
